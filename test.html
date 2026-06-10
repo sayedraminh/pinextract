@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PinExtract Local Test</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #161411;
+        --muted: #746f68;
+        --paper: #fbfaf6;
+        --panel: #ffffff;
+        --line: #ded8cf;
+        --red: #d71932;
+        --red-dark: #ab1024;
+        --green: #177a55;
+        --blue: #255f85;
+        --shadow: 0 18px 50px rgba(22, 20, 17, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(135deg, rgba(215, 25, 50, 0.08), transparent 38%),
+          linear-gradient(315deg, rgba(37, 95, 133, 0.12), transparent 42%),
+          var(--paper);
+        color: var(--ink);
+        font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+        letter-spacing: 0;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 44px 0;
+      }
+
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(38px, 6vw, 78px);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      .status-pill {
+        min-width: 128px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: minmax(0, 0.86fr) minmax(320px, 1.14fr);
+        gap: 18px;
+      }
+
+      section,
+      aside {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: var(--shadow);
+      }
+
+      .controls {
+        padding: 22px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      input[type="url"] {
+        width: 100%;
+        height: 52px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0 14px;
+        color: var(--ink);
+        background: #fff;
+        font: inherit;
+        font-size: 16px;
+        outline: none;
+      }
+
+      input[type="url"]:focus {
+        border-color: var(--red);
+        box-shadow: 0 0 0 3px rgba(215, 25, 50, 0.16);
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .check-row {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--red);
+      }
+
+      button,
+      a.button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 6px;
+        padding: 0 16px;
+        background: var(--ink);
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      button.primary {
+        background: var(--red);
+      }
+
+      button.primary:hover {
+        background: var(--red-dark);
+      }
+
+      button.secondary,
+      a.button.secondary {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      .result {
+        overflow: hidden;
+      }
+
+      .preview {
+        min-height: 380px;
+        display: grid;
+        place-items: center;
+        background:
+          linear-gradient(45deg, rgba(22, 20, 17, 0.04) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(22, 20, 17, 0.04) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(22, 20, 17, 0.04) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(22, 20, 17, 0.04) 75%);
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        background-size: 20px 20px;
+      }
+
+      .preview img {
+        max-width: 100%;
+        max-height: 70vh;
+        display: block;
+        object-fit: contain;
+      }
+
+      .empty {
+        padding: 28px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .details {
+        padding: 18px;
+        border-top: 1px solid var(--line);
+        display: grid;
+        gap: 12px;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .meta {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px;
+        min-height: 62px;
+      }
+
+      .meta span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .meta strong {
+        display: block;
+        overflow-wrap: anywhere;
+        font-size: 14px;
+      }
+
+      textarea,
+      pre {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #161411;
+        color: #fbfaf6;
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      textarea {
+        min-height: 74px;
+        resize: vertical;
+        padding: 12px;
+      }
+
+      pre {
+        max-height: 300px;
+        overflow: auto;
+        margin: 0;
+        padding: 14px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .message {
+        min-height: 24px;
+        margin-top: 14px;
+        color: var(--muted);
+        overflow-wrap: anywhere;
+      }
+
+      .message.ok {
+        color: var(--green);
+      }
+
+      .message.error {
+        color: var(--red-dark);
+      }
+
+      @media (max-width: 860px) {
+        header,
+        .shell {
+          display: block;
+        }
+
+        .status-pill {
+          margin-top: 16px;
+          width: max-content;
+        }
+
+        .result {
+          margin-top: 18px;
+        }
+
+        .meta-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>PinExtract</h1>
+        <div class="status-pill" id="serverStatus">Checking server</div>
+      </header>
+
+      <div class="shell">
+        <section class="controls" aria-label="Extractor">
+          <form id="extractForm">
+            <label for="pinUrl">Pin source</label>
+            <input
+              id="pinUrl"
+              name="pinUrl"
+              type="url"
+              required
+              value="https://pin.it/4vlUDenLv"
+              autocomplete="off"
+            />
+
+            <div class="row">
+              <button class="primary" id="extractButton" type="submit">Extract</button>
+              <button class="secondary" id="sampleButton" type="button">Sample</button>
+            </div>
+
+            <label class="row check-row">
+              <input id="includeData" type="checkbox" />
+              <span>Include data URL</span>
+            </label>
+          </form>
+          <div class="message" id="message"></div>
+        </section>
+
+        <aside class="result" aria-label="Result">
+          <div class="preview" id="preview">
+            <div class="empty">No image loaded</div>
+          </div>
+          <div class="details">
+            <div class="meta-grid">
+              <div class="meta">
+                <span>Type</span>
+                <strong id="contentType">-</strong>
+              </div>
+              <div class="meta">
+                <span>Bytes</span>
+                <strong id="contentLength">-</strong>
+              </div>
+            </div>
+
+            <textarea id="imageUrl" readonly placeholder="Image URL"></textarea>
+
+            <div class="actions">
+              <a class="button secondary" id="openImage" href="#" target="_blank" rel="noreferrer">Open image</a>
+              <a class="button secondary" id="proxyImage" href="#" target="_blank" rel="noreferrer">Open proxy</a>
+              <button class="secondary" id="copyUrl" type="button">Copy URL</button>
+            </div>
+
+            <pre id="jsonOutput">{}</pre>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script>
+      const apiBase = location.protocol === "file:" ? "http://127.0.0.1:8077" : location.origin;
+      const sampleUrl = "https://pin.it/4vlUDenLv";
+      const form = document.querySelector("#extractForm");
+      const pinUrl = document.querySelector("#pinUrl");
+      const includeData = document.querySelector("#includeData");
+      const button = document.querySelector("#extractButton");
+      const sampleButton = document.querySelector("#sampleButton");
+      const message = document.querySelector("#message");
+      const serverStatus = document.querySelector("#serverStatus");
+      const preview = document.querySelector("#preview");
+      const contentType = document.querySelector("#contentType");
+      const contentLength = document.querySelector("#contentLength");
+      const imageUrl = document.querySelector("#imageUrl");
+      const jsonOutput = document.querySelector("#jsonOutput");
+      const openImage = document.querySelector("#openImage");
+      const proxyImage = document.querySelector("#proxyImage");
+      const copyUrl = document.querySelector("#copyUrl");
+
+      function setMessage(text, kind = "") {
+        message.textContent = text;
+        message.className = `message ${kind}`;
+      }
+
+      function formatBytes(value) {
+        if (!value) return "-";
+        const units = ["B", "KB", "MB", "GB"];
+        let size = Number(value);
+        let unit = 0;
+        while (size >= 1024 && unit < units.length - 1) {
+          size /= 1024;
+          unit += 1;
+        }
+        return `${size.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
+      }
+
+      async function checkHealth() {
+        try {
+          const response = await fetch(`${apiBase}/health`);
+          if (!response.ok) throw new Error(response.statusText);
+          serverStatus.textContent = "Server online";
+        } catch {
+          serverStatus.textContent = "Server offline";
+        }
+      }
+
+      async function extract(event) {
+        event.preventDefault();
+        button.disabled = true;
+        setMessage("Working");
+
+        try {
+          const params = new URLSearchParams({
+            url: pinUrl.value,
+            include_data: includeData.checked ? "true" : "false",
+          });
+          const response = await fetch(`${apiBase}/api/extract?${params.toString()}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || `Request failed with HTTP ${response.status}`);
+          }
+
+          const previewSrc = data.image_data_url || data.image_url;
+          preview.innerHTML = "";
+          const img = new Image();
+          img.alt = data.title || "Pinterest image";
+          img.src = previewSrc;
+          preview.appendChild(img);
+
+          contentType.textContent = data.content_type || "-";
+          contentLength.textContent = formatBytes(data.content_length);
+          imageUrl.value = data.image_url;
+          openImage.href = data.image_url;
+          proxyImage.href = `${apiBase}/api/image?url=${encodeURIComponent(pinUrl.value)}`;
+          jsonOutput.textContent = JSON.stringify(data, null, 2);
+          setMessage("Ready", "ok");
+        } catch (error) {
+          preview.innerHTML = '<div class="empty">No image loaded</div>';
+          setMessage(error.message, "error");
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      sampleButton.addEventListener("click", () => {
+        pinUrl.value = sampleUrl;
+        pinUrl.focus();
+      });
+
+      copyUrl.addEventListener("click", async () => {
+        if (!imageUrl.value) return;
+        await navigator.clipboard.writeText(imageUrl.value);
+        setMessage("Copied", "ok");
+      });
+
+      form.addEventListener("submit", extract);
+      checkHealth();
+    </script>
+  </body>
+</html>
