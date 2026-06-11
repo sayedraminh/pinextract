@@ -13,6 +13,8 @@ PinExtract is a small FastAPI server that extracts the best available image URL 
 
 ## Install
 
+PinExtract pins Python `3.12` for deployment in `.python-version`.
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -89,6 +91,24 @@ curl -L "http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
 ```
 
 For frontend/client usage, see [`doc.md`](doc.md).
+
+## Deploy On Railway
+
+Railway uses Railpack for this project. Set this variable in Railway's Variables tab:
+
+```text
+PINEXTRACT_API_KEY=your-secret-key
+```
+
+Do not upload your local `.env` to Railway or GitHub. `.env` is only for local development.
+
+Railway/Railpack will auto-detect FastAPI and run:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+```
+
+Railpack reads `.python-version`, so the deployment uses Python `3.12` instead of trying an unavailable Python `3.13` build.
 
 ## How It Works
 
