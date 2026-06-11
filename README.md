@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ## Run
 
 ```bash
-python main.py
+PINEXTRACT_API_KEY=change-this-key python main.py
 ```
 
 The server starts at:
@@ -34,15 +34,18 @@ http://127.0.0.1:8077/
 You can override the host or port:
 
 ```bash
-HOST=0.0.0.0 PORT=8077 python main.py
+PINEXTRACT_API_KEY=change-this-key HOST=0.0.0.0 PORT=8077 python main.py
 ```
+
+`PINEXTRACT_API_KEY` is required. API requests must send the same key in the `X-API-Key` header.
 
 ## API
 
 Extract an image URL:
 
 ```bash
-curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv"
+curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
+  -H "X-API-Key: change-this-key"
 ```
 
 Example response:
@@ -63,13 +66,16 @@ Example response:
 Include image data in the JSON:
 
 ```bash
-curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv&include_data=true"
+curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv&include_data=true" \
+  -H "X-API-Key: change-this-key"
 ```
 
 Stream the image through the server:
 
 ```bash
-curl -L "http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" -o pin-image.jpg
+curl -L "http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
+  -H "X-API-Key: change-this-key" \
+  -o pin-image.jpg
 ```
 
 For frontend/client usage, see [`doc.md`](doc.md).

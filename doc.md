@@ -15,10 +15,26 @@ http://127.0.0.1:8077
 Run it locally:
 
 ```bash
-python main.py
+PINEXTRACT_API_KEY=change-this-key python main.py
 ```
 
 If you deploy the server, replace `http://127.0.0.1:8077` with your deployed API URL.
+
+## Authentication
+
+Every API endpoint requires an API key. Set the key on the server with:
+
+```bash
+PINEXTRACT_API_KEY=change-this-key python main.py
+```
+
+Clients should send the same key in the `X-API-Key` header:
+
+```http
+X-API-Key: change-this-key
+```
+
+For public browser apps, do not hardcode a private API key in shipped frontend code. Put the key on your own backend and call PinExtract from there. Sending the key from browser JavaScript is only suitable for local tools, internal dashboards, or trusted environments.
 
 ## Main Endpoint
 
@@ -31,7 +47,8 @@ GET /api/extract?url={PINTEREST_URL}
 Example:
 
 ```bash
-curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv"
+curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
+  -H "X-API-Key: change-this-key"
 ```
 
 The `url` query parameter must be URL encoded.
@@ -59,6 +76,7 @@ Use `image_url` as the final image URL in your client.
 
 ```html
 <input id="pinUrl" value="https://pin.it/4vlUDenLv" />
+<input id="apiKey" type="password" value="change-this-key" />
 <button id="extract">Extract</button>
 <img id="preview" alt="Pinterest image" />
 
@@ -67,7 +85,10 @@ Use `image_url` as the final image URL in your client.
 
   async function extractPinImage(pinUrl) {
     const params = new URLSearchParams({ url: pinUrl });
-    const response = await fetch(`${apiBase}/api/extract?${params}`);
+    const apiKey = document.querySelector("#apiKey").value;
+    const response = await fetch(`${apiBase}/api/extract?${params}`, {
+      headers: { "X-API-Key": apiKey },
+    });
     const data = await response.json();
 
     if (!response.ok) {
@@ -91,6 +112,7 @@ Use `image_url` as the final image URL in your client.
 import { useState } from "react";
 
 const API_BASE = "http://127.0.0.1:8077";
+const API_KEY = "change-this-key";
 
 export default function PinExtractor() {
   const [pinUrl, setPinUrl] = useState("https://pin.it/4vlUDenLv");
@@ -103,7 +125,9 @@ export default function PinExtractor() {
 
     try {
       const params = new URLSearchParams({ url: pinUrl });
-      const response = await fetch(`${API_BASE}/api/extract?${params}`);
+      const response = await fetch(`${API_BASE}/api/extract?${params}`, {
+        headers: { "X-API-Key": API_KEY },
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -148,7 +172,10 @@ JavaScript:
 ```js
 const response = await fetch("http://127.0.0.1:8077/api/extract", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "change-this-key",
+  },
   body: JSON.stringify({
     url: "https://pin.it/4vlUDenLv",
     include_data: false,
@@ -191,13 +218,23 @@ Use this endpoint when your client wants the server to stream the image bytes:
 GET /api/image?url={PINTEREST_URL}
 ```
 
+Preferred curl usage with the API key header:
+
+```bash
+curl -L "http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
+  -H "X-API-Key: change-this-key" \
+  -o pin-image.jpg
+```
+
 Example download link:
 
 ```html
-<a href="http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" download>
+<a href="http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv&api_key=change-this-key" download>
   Download image
 </a>
 ```
+
+Use the query-string `api_key` form only when you cannot set headers, such as a plain browser download link. Prefer the `X-API-Key` header for normal API calls.
 
 ## Error Handling
 
@@ -212,8 +249,10 @@ Errors return JSON with a `detail` field:
 Common status codes:
 
 - `400`: invalid or unsupported URL
+- `401`: invalid or missing API key
 - `404`: no reachable image was found
 - `502`: Pinterest or the image CDN returned an unexpected response
+- `503`: `PINEXTRACT_API_KEY` is not set on the server
 - `504`: request timed out
 
 ## Client Notes

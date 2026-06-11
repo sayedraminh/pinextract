@@ -95,7 +95,12 @@
         font-weight: 700;
       }
 
-      input[type="url"] {
+      .field {
+        margin-top: 16px;
+      }
+
+      input[type="url"],
+      input[type="password"] {
         width: 100%;
         height: 52px;
         border: 1px solid var(--line);
@@ -108,7 +113,8 @@
         outline: none;
       }
 
-      input[type="url"]:focus {
+      input[type="url"]:focus,
+      input[type="password"]:focus {
         border-color: var(--red);
         box-shadow: 0 0 0 3px rgba(215, 25, 50, 0.16);
       }
@@ -320,6 +326,17 @@
               autocomplete="off"
             />
 
+            <div class="field">
+              <label for="apiKey">API key</label>
+              <input
+                id="apiKey"
+                name="apiKey"
+                type="password"
+                required
+                autocomplete="off"
+              />
+            </div>
+
             <div class="row">
               <button class="primary" id="extractButton" type="submit">Extract</button>
               <button class="secondary" id="sampleButton" type="button">Sample</button>
@@ -368,6 +385,7 @@
       const sampleUrl = "https://pin.it/4vlUDenLv";
       const form = document.querySelector("#extractForm");
       const pinUrl = document.querySelector("#pinUrl");
+      const apiKeyInput = document.querySelector("#apiKey");
       const includeData = document.querySelector("#includeData");
       const button = document.querySelector("#extractButton");
       const sampleButton = document.querySelector("#sampleButton");
@@ -381,6 +399,7 @@
       const openImage = document.querySelector("#openImage");
       const proxyImage = document.querySelector("#proxyImage");
       const copyUrl = document.querySelector("#copyUrl");
+      apiKeyInput.value = localStorage.getItem("pinextract_api_key") || "";
 
       function setMessage(text, kind = "") {
         message.textContent = text;
@@ -415,11 +434,20 @@
         setMessage("Working");
 
         try {
+          const apiKey = apiKeyInput.value.trim();
+          if (!apiKey) {
+            throw new Error("API key is required");
+          }
+
+          localStorage.setItem("pinextract_api_key", apiKey);
+
           const params = new URLSearchParams({
             url: pinUrl.value,
             include_data: includeData.checked ? "true" : "false",
           });
-          const response = await fetch(`${apiBase}/api/extract?${params.toString()}`);
+          const response = await fetch(`${apiBase}/api/extract?${params.toString()}`, {
+            headers: { "X-API-Key": apiKey },
+          });
           const data = await response.json();
 
           if (!response.ok) {
@@ -437,7 +465,11 @@
           contentLength.textContent = formatBytes(data.content_length);
           imageUrl.value = data.image_url;
           openImage.href = data.image_url;
-          proxyImage.href = `${apiBase}/api/image?url=${encodeURIComponent(pinUrl.value)}`;
+          const proxyParams = new URLSearchParams({
+            url: pinUrl.value,
+            api_key: apiKey,
+          });
+          proxyImage.href = `${apiBase}/api/image?${proxyParams.toString()}`;
           jsonOutput.textContent = JSON.stringify(data, null, 2);
           setMessage("Ready", "ok");
         } catch (error) {

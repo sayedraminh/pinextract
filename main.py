@@ -4,19 +4,21 @@ import base64
 import html
 import os
 import re
+import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import AsyncIterator
 from urllib.parse import urlparse
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 
 BASE_DIR = Path(__file__).resolve().parent
+API_KEY_ENV = "PINEXTRACT_API_KEY"
 DEFAULT_HOST = os.getenv("HOST", "127.0.0.1")
 DEFAULT_PORT = int(os.getenv("PORT", "8077"))
 MAX_HTML_BYTES = 3 * 1024 * 1024
@@ -89,22 +91,47 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+async def require_api_key(
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    api_key: str | None = Query(default=None, include_in_schema=False),
+) -> None:
+    expected_api_key = os.getenv(API_KEY_ENV)
+    if not expected_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail=f"{API_KEY_ENV} is not set on the server.",
+        )
+
+    provided_api_key = x_api_key or api_key
+    if not provided_api_key or not secrets.compare_digest(provided_api_key, expected_api_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key.",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+
+
 @app.get("/api/extract")
 async def extract_get(
     url: str = Query(..., description="Pinterest or pin.it URL"),
     include_data: bool = Query(False, description="Include base64 data URL in response"),
+    _api_key: None = Depends(require_api_key),
 ) -> dict[str, object]:
     return await extract_pin(url, include_data=include_data)
 
 
 @app.post("/api/extract")
-async def extract_post(payload: ExtractRequest) -> dict[str, object]:
+async def extract_post(
+    payload: ExtractRequest,
+    _api_key: None = Depends(require_api_key),
+) -> dict[str, object]:
     return await extract_pin(payload.url, include_data=payload.include_data)
 
 
 @app.get("/api/image")
 async def image_proxy(
     url: str = Query(..., description="Pinterest or pin.it URL"),
+    _api_key: None = Depends(require_api_key),
 ) -> StreamingResponse:
     result = await extract_pin(url, include_data=False)
     image_url = str(result["image_url"])
