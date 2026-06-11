@@ -21,8 +21,24 @@ pip install -r requirements.txt
 
 ## Run
 
+Create your local `.env` file:
+
 ```bash
-PINEXTRACT_API_KEY=change-this-key python main.py
+cp .env.example .env
+```
+
+Edit `.env` and set your API key:
+
+```text
+PINEXTRACT_API_KEY=your-secret-key
+HOST=127.0.0.1
+PORT=8077
+```
+
+Start the server:
+
+```bash
+python main.py
 ```
 
 The server starts at:
@@ -31,13 +47,7 @@ The server starts at:
 http://127.0.0.1:8077/
 ```
 
-You can override the host or port:
-
-```bash
-PINEXTRACT_API_KEY=change-this-key HOST=0.0.0.0 PORT=8077 python main.py
-```
-
-`PINEXTRACT_API_KEY` is required. API requests must send the same key in the `X-API-Key` header.
+`PINEXTRACT_API_KEY` is required in `.env`. API requests must send the same key in the `X-API-Key` header.
 
 ## API
 
@@ -45,7 +55,7 @@ Extract an image URL:
 
 ```bash
 curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
-  -H "X-API-Key: change-this-key"
+  -H "X-API-Key: your-secret-key"
 ```
 
 Example response:
@@ -67,14 +77,14 @@ Include image data in the JSON:
 
 ```bash
 curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv&include_data=true" \
-  -H "X-API-Key: change-this-key"
+  -H "X-API-Key: your-secret-key"
 ```
 
 Stream the image through the server:
 
 ```bash
 curl -L "http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
-  -H "X-API-Key: change-this-key" \
+  -H "X-API-Key: your-secret-key" \
   -o pin-image.jpg
 ```
 

@@ -15,23 +15,26 @@ http://127.0.0.1:8077
 Run it locally:
 
 ```bash
-PINEXTRACT_API_KEY=change-this-key python main.py
+cp .env.example .env
+python main.py
 ```
 
 If you deploy the server, replace `http://127.0.0.1:8077` with your deployed API URL.
 
 ## Authentication
 
-Every API endpoint requires an API key. Set the key on the server with:
+Every API endpoint requires an API key. Set the key in the server `.env` file:
 
-```bash
-PINEXTRACT_API_KEY=change-this-key python main.py
+```text
+PINEXTRACT_API_KEY=your-secret-key
+HOST=127.0.0.1
+PORT=8077
 ```
 
 Clients should send the same key in the `X-API-Key` header:
 
 ```http
-X-API-Key: change-this-key
+X-API-Key: your-secret-key
 ```
 
 For public browser apps, do not hardcode a private API key in shipped frontend code. Put the key on your own backend and call PinExtract from there. Sending the key from browser JavaScript is only suitable for local tools, internal dashboards, or trusted environments.
@@ -48,7 +51,7 @@ Example:
 
 ```bash
 curl "http://127.0.0.1:8077/api/extract?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
-  -H "X-API-Key: change-this-key"
+  -H "X-API-Key: your-secret-key"
 ```
 
 The `url` query parameter must be URL encoded.
@@ -76,7 +79,7 @@ Use `image_url` as the final image URL in your client.
 
 ```html
 <input id="pinUrl" value="https://pin.it/4vlUDenLv" />
-<input id="apiKey" type="password" value="change-this-key" />
+<input id="apiKey" type="password" value="your-secret-key" />
 <button id="extract">Extract</button>
 <img id="preview" alt="Pinterest image" />
 
@@ -112,7 +115,7 @@ Use `image_url` as the final image URL in your client.
 import { useState } from "react";
 
 const API_BASE = "http://127.0.0.1:8077";
-const API_KEY = "change-this-key";
+const API_KEY = "your-secret-key";
 
 export default function PinExtractor() {
   const [pinUrl, setPinUrl] = useState("https://pin.it/4vlUDenLv");
@@ -174,7 +177,7 @@ const response = await fetch("http://127.0.0.1:8077/api/extract", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    "X-API-Key": "change-this-key",
+    "X-API-Key": "your-secret-key",
   },
   body: JSON.stringify({
     url: "https://pin.it/4vlUDenLv",
@@ -222,14 +225,14 @@ Preferred curl usage with the API key header:
 
 ```bash
 curl -L "http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv" \
-  -H "X-API-Key: change-this-key" \
+  -H "X-API-Key: your-secret-key" \
   -o pin-image.jpg
 ```
 
 Example download link:
 
 ```html
-<a href="http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv&api_key=change-this-key" download>
+<a href="http://127.0.0.1:8077/api/image?url=https%3A%2F%2Fpin.it%2F4vlUDenLv&api_key=your-secret-key" download>
   Download image
 </a>
 ```
